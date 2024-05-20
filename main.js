@@ -59,11 +59,13 @@ function main() {
 		} );
 		const mesh = new THREE.Mesh( planeGeo, planeMat );
 		mesh.rotation.x = Math.PI * - .5;
+		mesh.receiveShadow = true; // Make sure the ground plane receives shadows
 		scene.add( mesh );
 
 	}
 	//#endregion
 
+	//#region [[ SCENE LIGHTING ]]
 	//#region [[ SKYBOX LIGHTING ]]
 	{
 
@@ -84,11 +86,25 @@ function main() {
 		const light = new THREE.DirectionalLight( color, intensity );
 		light.position.set( 0, 10, 0 );
 		light.target.position.set( - 5, 0, 0 );
+		light.castShadow = true; // Enable shadows for the directional light
 		scene.add( light );
 		scene.add( light.target );
 
 	}
 	//#endregion 
+
+	//#region [[ SPOT LIGHTING ]]
+	// Add a Spotlight to the scene
+	const spotLight = new THREE.SpotLight(0xe38f10, 2000); // Red color, increased intensity
+	spotLight.position.set(0, 20, 0);
+	spotLight.castShadow = true; // Enable shadows for the spotlight
+	spotLight.angle = Math.PI / 10; // Set the spotlight's angle
+	spotLight.penumbra = 1; // Soft edges for the spotlight
+
+	// Add spotlight to the scene
+	scene.add(spotLight);
+	//#endregion
+	//#endregion
 
 	//#region [[ CENTER THE MODEL IN CAMERA VIEW ]] 
 	function frameArea(sizeToFitOnScreen, boxSize, boxCenter, camera) {
@@ -143,6 +159,7 @@ function main() {
 		new THREE.MeshPhongMaterial({map: loadColorTexture('./textures/3.png')}),
 		new THREE.MeshPhongMaterial({map: loadColorTexture('./textures/basse.png')}),
 	];
+	const base = new THREE.MeshPhongMaterial({map: loadColorTexture('./textures/basse.png')});
 	
 	function loadColorTexture( path ) {
         const texture = loader.load( path );
@@ -160,6 +177,10 @@ function main() {
 		const boxHeight = 1;
 		const boxDepth = 1;
 		
+		// bleader sizes 
+		const bleacherW = 0.5;
+		const bleacherH = 0.5;
+		const bleacherD = 8;
 		//#endregion
 		//#region base cylinder sizes
 		const cylinderHeight = 2;
@@ -176,20 +197,59 @@ function main() {
 
 		// make instances of all shapes and put them in this array
 	
-		const cube3 = makeCube(boxWidth+1,boxHeight,boxDepth+0.5,4,1.5,third); // 3rd place
-		const cube2 = makeCube(boxWidth+1,boxHeight+1,boxDepth+0.5,-4,2,second); // 2nd place
-		const cube1 = makeCube(boxWidth+1,boxHeight+2,boxDepth+0.5,0,2.5,first); // 1st place
-		cylinder = makeCylinder(cylinderRadTop,cylinderRadBot,cylinderHeight,cylinderSegFaces,0,0, 0x8844aa ); // microphone
+		const cube3 = makeCube(boxWidth+1,boxHeight,boxDepth+0.5,4,1.5,0,third); // 3rd place
+		const cube3B = makeCube(boxWidth+2,boxHeight-0.5,boxDepth+1 ,4,0.9,0,base); // 3rd place
+
+		const cube2 = makeCube(boxWidth+1,boxHeight+1,boxDepth+0.5,-4,2,0,second); // 2nd place
+		const cube2B = makeCube(boxWidth+2,boxHeight-0.5,boxDepth+1 ,-4,0.9,0,base); // 2nd place
+		
+		const cube1 = makeCube(boxWidth+1,boxHeight+2,boxDepth+0.5,0,2.5,0,first); // 1st place
+		const cube1B = makeCube(boxWidth+2,boxHeight-0.5,boxDepth+1 ,0,0.9,0,base); // 1st place
+
+		cylinder = makeCylinder(cylinderRadTop,cylinderRadBot,cylinderHeight,cylinderSegFaces,0,0, 0x8844aa ); // platform
 		const cone = makeCone(coneRad,coneHeight,coneRadSeg,1,+5, 0xc9c441); // trophy 
+
+		// Bleachers 1
+		const bleacher1a = makeCube(bleacherW,bleacherH,bleacherD,12,1.5,-6,base); // bottom step
+		const bleacher1b = makeCube(bleacherW,bleacherH,bleacherD,13,2,-6,base); // lower mid step
+		const bleacher1c = makeCube(bleacherW,bleacherH,bleacherD,14,2.5,-6,base); // upper mid step
+		const bleacher1d = makeCube(bleacherW,bleacherH,bleacherD,15,3,-6,base); // top step
+		
+		// Bleachers 2
+		const bleacher2a = makeCube(bleacherW,bleacherH,bleacherD,12,1.5,6,base); // bottom step
+		const bleacher2b = makeCube(bleacherW,bleacherH,bleacherD,13,2,6,base); // lower mid step
+		const bleacher2c = makeCube(bleacherW,bleacherH,bleacherD,14,2.5,6,base); // upper mid step
+		const bleacher2d = makeCube(bleacherW,bleacherH,bleacherD,15,3,6,base); // top step
+
+		// Base of Bleacher 1 and 2
+		const bleacherRightBottom = makeCube(boxWidth*4,boxHeight*2, boxDepth*25,13,0,0,base);
+
+		// Bleachers 3
+		const bleacher3a = makeCube(bleacherW,bleacherH,bleacherD,-12,1.5,-6,base); // bottom step
+		const bleacher3b = makeCube(bleacherW,bleacherH,bleacherD,-13,2,-6,base); // lower mid step
+		const bleacher3c = makeCube(bleacherW,bleacherH,bleacherD,-14,2.5,-6,base); // upper mid step
+		const bleacher3d = makeCube(bleacherW,bleacherH,bleacherD,-15,3,-6,base); // top step
+
+		const bleacher4a = makeCube(bleacherW,bleacherH,bleacherD,-12,1.5,6,base); // bottom step
+		const bleacher4b = makeCube(bleacherW,bleacherH,bleacherD,-13,2,6,base); // lower mid step
+		const bleacher4c = makeCube(bleacherW,bleacherH,bleacherD,-14,2.5,6,base); // upper mid step
+		const bleacher4d = makeCube(bleacherW,bleacherH,bleacherD,-15,3,6,base); // top step
+
+		// Base of Bleacher 3 and 4
+		const bleacherLeftBottom = makeCube(boxWidth*4,boxHeight*2, boxDepth*25,-13,0,0,base);
+
 
 		// Add cube and cone objects as children of the cylinder
 		cylinder.add(cube1);
 		cylinder.add(cube2);
 		cylinder.add(cube3);
 		cylinder.add(cone);
+		cylinder.add(cube1B);
+		cylinder.add(cube2B);
+		cylinder.add(cube3B);
 
 		// create instances of cube objects
-		function makeCube(w, h, d, x, y, materials) {
+		function makeCube(w, h, d, x, y, z, materials) {
 			// make dat cube 
 			const geometry = new THREE.BoxGeometry( w, h, d );
 			//const material = new THREE.MeshPhongMaterial( { color } );
@@ -197,8 +257,9 @@ function main() {
 			// add shape to the scene
 			scene.add(cube);
 			cube.position.x = x;
-			cube.position.y = y
-			
+			cube.position.y = y;
+			cube.position.z = z;
+
 			return cube;
 		}
 		function makeCylinder(rT, rB, h, s, x, y, color) {
@@ -237,9 +298,12 @@ function main() {
 			const objLoader = new OBJLoader();
 			objLoader.setMaterials( mtl );
 			objLoader.load( 'obj/froggy.obj', ( root ) => {
-			root.position.y += 4;			
+			root.position.y += 4;
+			root.castShadow = true; // Enable shadows for the model
+			root.receiveShadow = true; // Enable shadows on the model			
 			scene.add( root );
 			cylinder.add(root);
+			
 			//root.posiiton.z +=3;
 			// compute the box that contains all the stuff
 			// from root and below
@@ -268,6 +332,8 @@ function main() {
 			objLoader.load( 'obj/froggy2.obj', ( root ) => {
 				root.position.y += 3;
 				root.position.x -=4;	
+				root.castShadow = true; // Enable shadows for the model
+				root.receiveShadow = true; // Enable shadows on the model
 				scene.add( root );
 				cylinder.add(root);
 			} );
@@ -283,6 +349,8 @@ function main() {
 			objLoader.load( 'obj/froggy3.obj', ( root ) => {
 				root.position.y += 2;
 				root.position.x +=4;
+				root.castShadow = true; // Enable shadows for the model
+				root.receiveShadow = true; // Enable shadows on the model
 				scene.add( root );
 				cylinder.add(root);
 			} );
@@ -323,7 +391,7 @@ function main() {
 
 		// ADD ROTATING CYLINDER HERE
 		cylinder.rotation.y += 0.01;
-
+	
 		renderer.render( scene, camera );
 
 		requestAnimationFrame( render );
